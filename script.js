@@ -1,42 +1,59 @@
-// Configuration
-const totalImages = 45;
-const imageFolder = "img";
+ const totalImages = 45;
+        const imageFolder = "img";
+        const galleryContainer = document.getElementById("gallery");
 
-// Generate the gallery
-const galleryContainer = document.getElementById("gallery");
+        // Preload images
+        async function preloadImages() {
+            const imagePromises = [];
+            for (let i = 1; i <= totalImages; i++) {
+                imagePromises.push(new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = `${imageFolder}/image${i}.jpeg`;
+                    img.alt = `Image ${i}`;
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(`Failed to load image ${i}`);
+                }));
+            }
 
-for (let i = 1; i <= totalImages; i++) {
-    const imageBox = document.createElement("div");
-    imageBox.className = "image-box";
+            return Promise.all(imagePromises);
+        }
 
-    const img = document.createElement("img");
-    img.src = `${imageFolder}/image${i}.jpeg`;
-    img.alt = `Image ${i}`;
-    img.addEventListener("click", () => showPopup(img.src)); // Add click event
+        // Initialize gallery
+        async function initializeGallery() {
+            try {
+                const images = await preloadImages();
+                images.forEach(img => {
+                    const imageBox = document.createElement("div");
+                    imageBox.className = "image-box";
 
-    imageBox.appendChild(img);
-    galleryContainer.appendChild(imageBox);
-}
+                    img.addEventListener("click", () => showPopup(img.src)); // Add click event
+                    imageBox.appendChild(img);
+                    galleryContainer.appendChild(imageBox);
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
 
-// Popup functionality
-const popup = document.getElementById("popup");
-const popupImage = document.getElementById("popup-image");
-const closePopupButton = document.getElementById("close-popup");
+        // Popup functionality
+        const popup = document.getElementById("popup");
+        const popupImage = document.getElementById("popup-image");
+        const closePopupButton = document.getElementById("close-popup");
 
-// Show popup
-function showPopup(imageSrc) {
-    popupImage.src = imageSrc;
-    popup.classList.remove("hidden");
-}
+        function showPopup(imageSrc) {
+            popupImage.src = imageSrc;
+            popup.classList.remove("hidden");
+        }
 
-// Close popup
-closePopupButton.addEventListener("click", () => {
-    popup.classList.add("hidden");
-});
+        closePopupButton.addEventListener("click", () => {
+            popup.classList.add("hidden");
+        });
 
-// Close popup when clicking outside of the image
-popup.addEventListener("click", (e) => {
-    if (e.target === popup) {
-        popup.classList.add("hidden");
-    }
-});
+        popup.addEventListener("click", (e) => {
+            if (e.target === popup) {
+                popup.classList.add("hidden");
+            }
+        });
+
+        // Start loading images
+        initializeGallery();
